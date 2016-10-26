@@ -19,6 +19,7 @@
   "scripts": {
     "start": "babel --source-maps --out-dir=lib src",
     "watch": "babel-watch --source-maps --out-dir=lib src",
+    "clean": "rm -r ./lib/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
