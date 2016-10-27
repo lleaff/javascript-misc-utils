@@ -1,5 +1,13 @@
 const { readdirSync } = require('fs');
 
+
+function applyStringTestTo(test, str) {
+    return (test instanceof RegExp ?
+        test.test(str) :
+    test === str);
+}
+
+
 module.exports = function readdirSyncConfigurable(
   dir,
   { include, exclude, filter } = {})
