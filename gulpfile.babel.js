@@ -9,15 +9,18 @@ export function clean() {
 const paths = {
     src: 'src',
     dest: 'lib'
-}
+};
 paths.scripts = {
     src: path.join(paths.src, '/**/*.js'),
     dest: paths.dest
 };
 
 export function scripts() {
-    return gulp.src(paths.scripts.src, { since: gulp.lastRun(scripts),
-                                         sourcemaps: true })
+    return gulp.src(paths.scripts.src, {
+                                         base: paths.src,
+                                         since: gulp.lastRun(scripts),
+                                         sourcemaps: true
+                                       })
         .pipe(babel())
         .pipe(gulp.dest(paths.scripts.dest))
 }
