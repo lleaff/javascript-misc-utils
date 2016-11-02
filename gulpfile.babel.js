@@ -25,13 +25,13 @@ export function scripts() {
         .pipe(gulp.dest(paths.scripts.dest))
 }
 
-export function watch() {
+export const build = scripts;
+
+export default build;
+
+export const watch = gulp.series(build, function watch() {
     gulp.watch(paths.scripts.src, scripts)
         .on('error', (err) => {
             console.error(err.stack);
         });
-}
-
-export const build = scripts;
-
-export default build;
+});
