@@ -7,11 +7,11 @@
  */
 export default function methodify(fn, thisArgPos = 0) {
     const formatArgs = (thisArgPos === 0) ?
-        (args) => [this, ...args.slice(1)] :
-        (args) => [...args.slice(0, thisArgPos),
-                   this,
-                   ...args.slice(thisArgPos + 1)];
+        function(self, args) { return [self, ...args.slice(1)]; } :
+        function(self, args) { return [...args.slice(0, thisArgPos),
+                                       self,
+                                       ...args.slice(thisArgPos + 1)]; };
     return function methodified(...args) {
-        return fn.apply(this, formatArgs(args));
+        return fn.apply(this, formatArgs(this, args));
     };
 }

@@ -1,4 +1,4 @@
-module.exports = function arrayMapToObject(arr, cb) {
+export default function arrayMapToObject(arr, cb) {
     let resultObject = {};
     arr.forEach((v, i, o) => {
         const [key, val] = cb(v, i, o);
