@@ -1,4 +1,4 @@
-import arrayInsert from '../array/insert';
+import { insert } from '../array/methods';
 
 /**
  * Take a Node.js callback style async function and return a function that
@@ -8,21 +8,19 @@ import arrayInsert from '../array/insert';
  * @param {int} [callbackPos] - Manually specify callback argument position,
  *   default to final argument
  */
-export default function promisify(fn, callbackPos) {
+export default function promisify(fn, callbackPos = Infinity) {
     const pos = callbackPos === undefined ? fn.length - 1 : callbackPos;
 
-    return function promisified() {
-        const promisifiedArgs = Array.prototype.slice.call(arguments);
+    return function promisified(...args) {
         return new Promise(function (resolve, reject) {
             function promisifiedCallback(err, ...resolveArgs) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve.apply(this, resolveArgs);
+                    resolve(...resolveArgs);
                 }
             }
-            const args = arrayInsert(promisifiedArgs, pos, promisifiedCallback);
-            fn.apply(this, args);
+            fn(...args::insert(pos, promisifiedCallback));
         });
     };
 }

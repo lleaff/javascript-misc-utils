@@ -1,6 +1,7 @@
 // @flow
 
-export default function patch(obj: {[key:string]: any},
+export default function patch(
+    obj: {[key:string]: any},
     { filter, transform } : { filter?: (val: any, key: string) => boolean,
                               transform: (val: any, key: string) => any } = {}
 ): {[key:string]: any} {

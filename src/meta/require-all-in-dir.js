@@ -25,18 +25,29 @@ function applyStringTestTo(test, str) {
 }
 
 /**
+ * @typedef {object} requireAllInDirFileOptions
+ * @property {String|RegExp|[String|RegExp]} [include] - Whitelist filenames or
+ *   RegExps to include in require.
+ * @property {String|RegExp|[String|RegExp]} [exclude] - Filenames or RegExps
+ *   to exclude from require. Takes precedence over `include`.
+ * @property {(filename: string)=>boolean} [filter]
+ */
+
+/**
  * @param absoluteDir
- * @param {String|RegExp|[String|RegExp]} [options[.(files|dirs)].include=/\.jsx?$/] -
- *   Whitelist filenames or RegExps to include in require.
- * @param {String|RegExp|[String|RegExp]} [options[.(files|dirs)].exclude='index.js'] -
- *   Filenames or RegExps to exclude from require. Takes precedence over
- *   `include`.
- * @param {predicate} [options[.(files|dirs)].filter]
+ * @param {requireAllInDirFileOptions} [options.files={  include: /\.jsx?$/,
+ *                                                       exclude: 'index.js' }]
+ *
+ *
+ * @param {requireAllInDirFileOptions} [options.directories]
+ * @param {...requireAllInDirFileOptions} [options] - Options to apply to both
+ *   files and directories.
  * @param {boolean} [options.includeDirs=true]
  * @returns {*}
  */
 module.exports = function requireAllInDir(absoluteDir, options = {})
 {
+    const includeDirs = options.includeDirs === undefined ? true : false;
     const pickFOpts = o => pick(o, [
         'include', 'exclude', 'filter'
     ]);
@@ -58,7 +69,7 @@ module.exports = function requireAllInDir(absoluteDir, options = {})
     const fileOpts = pickFOpts(options.files || {});
     fileOpts.include = [ /\.jsx?$/ ]::arrayMaybeFlatConcat(fileOpts.include);
     fileOpts.exclude = [ 'index.js' ]::arrayMaybeFlatConcat(fileOpts.exclude);
-    const dirOpts  = pickFOpts(options.dirs || {});
+    const dirOpts  = pickFOpts(options.directories || {});
 
     const dir = path.resolve(absoluteDir);
     let all = readdirSync(dir);
@@ -66,7 +77,7 @@ module.exports = function requireAllInDir(absoluteDir, options = {})
     let [files, dirs] = partition(all,
                                   f => statSync(path.join(dir, f)).isFile());
     files = filterFiles(files, fileOpts);
-    dirs = filterFiles(dirs, dirOpts);
+    dirs = includeDirs ? filterFiles(dirs, dirOpts) : [];
 
 
     return arrayMapToObject(
