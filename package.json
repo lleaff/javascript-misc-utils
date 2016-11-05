@@ -20,7 +20,7 @@
     "start": "gulp",
     "watch": "gulp watch",
     "clean": "rm -r ./lib/",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest lib",
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
   "devDependencies": {
@@ -34,7 +34,8 @@
     "babel-watch": "^2.0.3",
     "flow-bin": "^0.34.0",
     "gulp": "github:gulpjs/gulp#4.0",
-    "gulp-babel": "^6.1.2"
+    "gulp-babel": "^6.1.2",
+    "jest": "^16.0.2"
   },
   "babel": {
     "presets": [
