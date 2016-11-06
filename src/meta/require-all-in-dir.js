@@ -39,7 +39,8 @@ function applyStringTestTo(test, str) {
  *                                                       exclude: 'index.js' }]
  *
  *
- * @param {requireAllInDirFileOptions} [options.directories]
+ * @param {requireAllInDirFileOptions} [options.directories={
+ *                                                      exclude: '__tests__' }]
  * @param {...requireAllInDirFileOptions} [options] - Options to apply to both
  *   files and directories.
  * @param {boolean} [options.includeDirs=true]
@@ -70,6 +71,7 @@ module.exports = function requireAllInDir(absoluteDir, options = {})
     fileOpts.include = [ /\.jsx?$/ ]::arrayMaybeFlatConcat(fileOpts.include);
     fileOpts.exclude = [ 'index.js' ]::arrayMaybeFlatConcat(fileOpts.exclude);
     const dirOpts  = pickFOpts(options.directories || {});
+    fileOpts.exclude = [ '__tests__' ]::arrayMaybeFlatConcat(dirOpts.exclude);
 
     const dir = path.resolve(absoluteDir);
     let all = readdirSync(dir);
