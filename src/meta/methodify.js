@@ -1,4 +1,4 @@
-import arrayReplaceAt from '../array/replace-at';
+import arrayInsert from '../array/insert';
 
 /**
  * Transform a function taking its subject as argument into a method passing
@@ -10,6 +10,6 @@ import arrayReplaceAt from '../array/replace-at';
  */
 export default function methodify(fn, thisArgPos = 0) {
     return function methodified(...args) {
-        return fn.apply(this, arrayReplaceAt(args, thisArgPos, this));
+        return fn.apply(this, arrayInsert(args, thisArgPos, this));
     };
 }

@@ -15,6 +15,7 @@ module.exports = class Tree {
     forEachLevelNodes = methodify(require('./for-each-level-nodes'));
     map               = methodify(require('./map'));
     mapNodes          = methodify(require('./map-nodes'));
+    flatten           = methodify(require('./flatten'));
     [Symbol.iterator] = methodify(require('./iterator'));
 
 };

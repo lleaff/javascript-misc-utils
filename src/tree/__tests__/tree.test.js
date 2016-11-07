@@ -209,6 +209,26 @@ describe('Tree', () => {
         })
     });
 
+    describe('map', () => {
+        const map = require('../map');
+        const flatten = require('../flatten');
+
+        let pths = [];
+        let nodes = [];
+        const m = map(simpleTree, (val, pth, n) => {
+            pths.push(pth);
+            nodes.push(n);
+            return val.toUpperCase();
+        });
+
+        it('creates new nodes using values returned by callback', () => {
+            expect(flatten(m)).toEqual([
+                '0', '1A', '2AA', '2AB', '1B', '1C', '2CA', '2CB', '3CBA',
+                '4CBAA', '2CC', '2CD'
+            ]);
+        });
+
+    });
 
     describe('length', () => {
         const length = require('../length');
