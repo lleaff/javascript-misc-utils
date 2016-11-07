@@ -10,7 +10,7 @@ export default function treeForEachBfsDepth(tree, cb) {
             if (n.children) {
                 newLevel = [...newLevel, ...n.children];
             }
-            cb(n.value, depth, level);
+            cb(n.value, depth, n);
         }
         if (newLevel) {
             levels.push(newLevel);

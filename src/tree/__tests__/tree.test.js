@@ -21,9 +21,23 @@ describe('Tree', () => {
             ])
         ]);
     }
+
     createSimpleTree.TREE_LENGTH = 12;
 
     const simpleTree = deepFreeze(createSimpleTree());
+    const t_0        = simpleTree;
+    const t_1a       = simpleTree.children[0];
+    const t_2aa      = simpleTree.children[0].children[0];
+    const t_2ab      = simpleTree.children[0].children[1];
+    const t_1b       = simpleTree.children[1];
+    const t_1c       = simpleTree.children[2];
+    const t_2ca      = simpleTree.children[2].children[0];
+    const t_2cb      = simpleTree.children[2].children[1];
+    const t_3cba     = simpleTree.children[2].children[1].children[0];
+    const t_4cbaa    = simpleTree.children[2].children[1].children[0].children[0];
+    const t_2cc      = simpleTree.children[2].children[2];
+    const t_2cd      = simpleTree.children[2].children[3];
+    
 
     class CustomTree {
         constructor(val, children, extra) {
@@ -53,13 +67,14 @@ describe('Tree', () => {
         ]);
     }
 
-    describe('forEachBfs', () => {
-        const forEachBfs = require('../for-each-bfs');
+    function forEachBfs_forEachBfsDepth_commonTests(fn) {
+        let iterations = [];
+        fn(simpleTree, (value, secondArg, tree) => {
+            iterations.push({ value, secondArg, tree });
+        });
 
         it('iterates through values breadth first, keeping children order, starting from the root', () => {
-            let pth = [];
-            forEachBfs(simpleTree, (val) => { pth.push(val); });
-            expect(pth).toEqual([
+            expect(iterations.map(a => a.value)).toEqual([
                 '0',
                 '1a', '1b', '1c',
                 '2aa', '2ab', '2ca', '2cb', '2cc', '2cd',
@@ -68,6 +83,41 @@ describe('Tree', () => {
             ]);
         });
 
+        it('passes current node as third argument to callback', () => {
+            expect(iterations.map(a => a.tree)).toEqual([
+                t_0,
+                t_1a, t_1b, t_1c,
+                t_2aa, t_2ab, t_2ca, t_2cb, t_2cc, t_2cd,
+                t_3cba,
+                t_4cbaa
+            ]);
+        });
+
+        return iterations.map(a => a.secondArg);
+    }
+
+    describe('forEachBfs', () => {
+        const forEachBfs = require('../for-each-bfs');
+
+        const indices = forEachBfs_forEachBfsDepth_commonTests(forEachBfs);
+
+        it('passes incrementing index as second argument to callback', () => {
+            expect(indices).toEqual([
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+            ]);
+        })
+    });
+
+    describe('forEachBfsDepth', () => {
+        const forEachBfsDepth = require('../for-each-bfs-depth');
+
+        const depths = forEachBfs_forEachBfsDepth_commonTests(forEachBfsDepth);
+
+        it('passes the current depth as second argument to callback', () => {
+            expect(depths).toEqual([
+                0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 4
+            ]);
+        })
     });
 
     describe('forEachLevelNodes', () => {
@@ -151,9 +201,11 @@ describe('Tree', () => {
             ]);
         });
 
-        it('passes the original node as third argument to callback', () => {
-            expect(iterations.map(a => a.tree)).toEqual(
-                Array(createSimpleTree.TREE_LENGTH).fill(simpleTree));
+        it('passes the current node as third argument to callback', () => {
+            expect(iterations.map(a => a.tree)).toEqual([
+                t_0, t_1a, t_2aa, t_2ab, t_1b, t_1c, t_2ca, t_2cb, t_3cba,
+                t_4cbaa, t_2cc, t_2cd
+            ]);
         })
     });
 
