@@ -1,9 +1,14 @@
 const deepFreeze = require('../../object/deep-freeze');
 
+function _(strings, args) {
+    return strings.reduce((p, str, i) => p + str + args[i])
+                  .replace(/\s{2,}/g, ' ');
+}
+
 describe('Tree', () => {
     const Tree = require('../Tree');
 
-    function createSimpleTree() {
+    function createSimpleT() {
         return new Tree('0', [
             new Tree('1a', [
                 new Tree('2aa'),
@@ -22,22 +27,42 @@ describe('Tree', () => {
         ]);
     }
 
-    createSimpleTree.TREE_LENGTH = 12;
+    const simpleT = deepFreeze(createSimpleT());
+    const simpleTLength = 12;
 
-    const simpleTree = deepFreeze(createSimpleTree());
-    const t_0        = simpleTree;
-    const t_1a       = simpleTree.children[0];
-    const t_2aa      = simpleTree.children[0].children[0];
-    const t_2ab      = simpleTree.children[0].children[1];
-    const t_1b       = simpleTree.children[1];
-    const t_1c       = simpleTree.children[2];
-    const t_2ca      = simpleTree.children[2].children[0];
-    const t_2cb      = simpleTree.children[2].children[1];
-    const t_3cba     = simpleTree.children[2].children[1].children[0];
-    const t_4cbaa    = simpleTree.children[2].children[1].children[0].children[0];
-    const t_2cc      = simpleTree.children[2].children[2];
-    const t_2cd      = simpleTree.children[2].children[3];
-    
+    const t_0        = simpleT;
+    const t_1a       = simpleT.children[0];
+    const t_2aa      = simpleT.children[0].children[0];
+    const t_2ab      = simpleT.children[0].children[1];
+    const t_1b       = simpleT.children[1];
+    const t_1c       = simpleT.children[2];
+    const t_2ca      = simpleT.children[2].children[0];
+    const t_2cb      = simpleT.children[2].children[1];
+    const t_3cba     = simpleT.children[2].children[1].children[0];
+    const t_4cbaa    = simpleT.children[2].children[1].children[0].children[0];
+    const t_2cc      = simpleT.children[2].children[2];
+    const t_2cd      = simpleT.children[2].children[3];
+
+    const breadthFirstSimpleTNodes = deepFreeze([
+        t_0,
+        t_1a, t_1b, t_1c,
+        t_2aa, t_2ab, t_2ca, t_2cb, t_2cc, t_2cd,
+        t_3cba,
+        t_4cbaa
+    ]);
+    const breadthFirstSimpleTValues = deepFreeze(
+            breadthFirstSimpleTNodes.map(a => a.value));
+
+    const depthFirstSimpleTNodes = deepFreeze([
+        t_0, t_1a, t_2aa, t_2ab, t_1b, t_1c, t_2ca, t_2cb, t_3cba, t_4cbaa,
+        t_2cc, t_2cd
+    ]);
+    const depthFirstSimpleTValues = deepFreeze(
+        depthFirstSimpleTNodes.map(a => a.value));
+
+
+
+
 
     class CustomTree {
         constructor(val, children, extra) {
@@ -67,33 +92,29 @@ describe('Tree', () => {
         ]);
     }
 
+    //= Tests
+    //------------------------------------------------------------
+
     function forEachBfs_forEachBfsDepth_commonTests(fn) {
-        let iterations = [];
-        fn(simpleTree, (value, secondArg, tree) => {
-            iterations.push({ value, secondArg, tree });
+        let values = [];
+        let secondArgs = [];
+        let nodes = [];
+        fn(simpleT, (value, secondArg, tree) => {
+            values.push(value);
+            secondArgs.push(secondArg);
+            nodes.push(tree);
         });
 
-        it('iterates through values breadth first, keeping children order, starting from the root', () => {
-            expect(iterations.map(a => a.value)).toEqual([
-                '0',
-                '1a', '1b', '1c',
-                '2aa', '2ab', '2ca', '2cb', '2cc', '2cd',
-                '3cba',
-                '4cbaa'
-            ]);
+        it(_`iterates through values breadth first, keeping children order,
+           starting from the root`, () => {
+            expect(values).toEqual(breadthFirstSimpleTValues);
         });
 
-        it('passes current node as third argument to callback', () => {
-            expect(iterations.map(a => a.tree)).toEqual([
-                t_0,
-                t_1a, t_1b, t_1c,
-                t_2aa, t_2ab, t_2ca, t_2cb, t_2cc, t_2cd,
-                t_3cba,
-                t_4cbaa
-            ]);
+        it(_`passes current node as third argument to callback`, () => {
+            expect(nodes).toEqual(breadthFirstSimpleTNodes);
         });
 
-        return iterations.map(a => a.secondArg);
+        return secondArgs;
     }
 
     describe('forEachBfs', () => {
@@ -124,13 +145,15 @@ describe('Tree', () => {
         const forEachLevelNodes = require('../for-each-level-nodes');
 
         let levels = [];
-        forEachLevelNodes(simpleTree, (nodes) => { levels.push(nodes); });
+        forEachLevelNodes(simpleT, (nodes) => { levels.push(nodes); });
 
-        it('iterates through each level of nodes starting from the root', () => {
+        it(`iterates through each level of nodes starting from the 
+            root`, () => {
             expect(levels.map(l => l.length)).toEqual([1, 3, 6, 1, 1]);
         });
 
-        it('calls callback with arrays filled with instances of the same type as passed in', () => {
+        it(_`calls callback with arrays filled with instances of the same type
+            as passed in`, () => {
             levels.every(level =>
                 level.every(n =>
                     expect(n).toBeInstanceOf(Tree)));
@@ -156,11 +179,12 @@ describe('Tree', () => {
         const forEachLevel = require('../for-each-level');
 
         let levels = [];
-        forEachLevel(simpleTree, (values) => {
+        forEachLevel(simpleT, (values) => {
             levels.push(values);
         });
 
-        it('iterates through each level of values starting from the root', () => {
+        it(_`iterates through each level of values starting from the
+            root`, () => {
             expect(levels).toEqual([
                 ['0'],
                 ['1a', '1b', '1c'],
@@ -176,18 +200,20 @@ describe('Tree', () => {
 
 
         let iterations = [];
-        forEach(simpleTree, (value, pth, tree) => {
+        forEach(simpleT, (value, pth, tree) => {
             iterations.push({ value, pth, tree });
         });
 
-        it('iterates through values depth first, starting from the root', () => {
+        it(`iterates through values depth first, starting from the
+            root`, () => {
             expect(iterations.map(a => a.value)).toEqual([
                 '0', '1a', '2aa', '2ab', '1b', '1c', '2ca', '2cb', '3cba',
                 '4cbaa', '2cc', '2cd'
             ]);
         });
 
-        it('passes an array of the visited values in visit order as second argument to callback', () => {
+        it(_`passes an array of the visited values in visit order as second
+            argument to callback`, () => {
             expect(iterations.map(a => a.pth)).toEqual([
                 ["0"], ["0", "1a"], ["0", "1a", "2aa"],
                                     ["0", "1a", "2ab"],
@@ -202,30 +228,66 @@ describe('Tree', () => {
         });
 
         it('passes the current node as third argument to callback', () => {
-            expect(iterations.map(a => a.tree)).toEqual([
-                t_0, t_1a, t_2aa, t_2ab, t_1b, t_1c, t_2ca, t_2cb, t_3cba,
-                t_4cbaa, t_2cc, t_2cd
-            ]);
+            expect(iterations.map(a => a.tree)).toEqual(depthFirstSimpleTNodes);
         })
+    });
+
+    describe('flatten', () => {
+        const flatten = require('../flatten');
+        const forEachBfs = require('../for-each-bfs');
+
+        it(_`returns an array of values returned from tree-traversal function
+            in visit order, which defaults to forEach (depth first)`, () => {
+            const flattened = flatten(simpleT);
+            expect(flattened).toEqual(depthFirstSimpleTValues);
+        });
+
+        it(_`accepts a tree-traversal method of the form (callback)=>{} as
+            optional second argument`, () => {
+            const forEachBfsMethod = function(...args) {
+                return forEachBfs(this, ...args);
+            };
+            const flattened = flatten(simpleT, forEachBfsMethod);
+            expect(flattened).toEqual(breadthFirstSimpleTValues);
+        });
+
+        it(_`accepts a tree-traversal function of the form (tree, callback)=>{}
+            if third argument \`isMethod\` set to false`, () => {
+            const flattened = flatten(simpleT, forEachBfs, false);
+            expect(flattened).toEqual(breadthFirstSimpleTValues);
+        });
     });
 
     describe('map', () => {
         const map = require('../map');
-        const flatten = require('../flatten');
 
         let pths = [];
         let nodes = [];
-        const m = map(simpleTree, (val, pth, n) => {
+        const m = map(simpleT, (val, pth, n) => {
             pths.push(pth);
             nodes.push(n);
             return val.toUpperCase();
         });
 
         it('creates new nodes using values returned by callback', () => {
-            expect(flatten(m)).toEqual([
-                '0', '1A', '2AA', '2AB', '1B', '1C', '2CA', '2CB', '3CBA',
-                '4CBAA', '2CC', '2CD'
-            ]);
+            expect(m).toEqual(
+                new Tree('0', [
+                    new Tree('1A', [
+                        new Tree('2AA'),
+                        new Tree('2AB')]),
+                    new Tree('1B'),
+                    new Tree('1C', [
+                        new Tree('2CA'),
+                        new Tree('2CB', [
+                            new Tree('3CBA', [
+                                new Tree('4CBAA')
+                            ])
+                        ]),
+                        new Tree('2CC'),
+                        new Tree('2CD')
+                    ])
+                ])
+            );
         });
 
     });
@@ -234,21 +296,18 @@ describe('Tree', () => {
         const length = require('../length');
 
         it('counts the number of nodes in the tree', () => {
-            expect(length(simpleTree)).toBe(createSimpleTree.TREE_LENGTH);
+            expect(length(simpleT)).toBe(simpleTLength);
         });
     });
 
     describe('iterator', () => {
         it('iterates through values depth first', () => {
             const values = [];
-            for (const v of simpleTree) {
+            for (const v of simpleT) {
                 values.push(v);
             }
 
-            expect(values).toEqual([
-                '0', '1a', '2aa', '2ab', '1b', '1c', '2ca', '2cb', '3cba',
-                '4cbaa', '2cc', '2cd'
-            ]);
+            expect(values).toEqual(depthFirstSimpleTValues);
         })
     });
 });
