@@ -1,3 +1,6 @@
+//= Setup
+//------------------------------------------------------------
+
 const deepFreeze = require('../../object/deep-freeze');
 
 function _(strings, args) {
@@ -60,13 +63,27 @@ describe('Tree', () => {
     const depthFirstSimpleTValues = deepFreeze(
         depthFirstSimpleTNodes.map(a => a.value));
 
+    const depthFirstSimpleTPaths = deepFreeze(
+        [
+            ["0"], ["0", "1a"], ["0", "1a", "2aa"],
+                                ["0", "1a", "2ab"],
+                    ["0", "1b"],
+                    ["0", "1c"], ["0", "1c", "2ca"],
+                                 ["0", "1c", "2cb"],
+                                     ["0", "1c", "2cb", "3cba"],
+                                        ["0", "1c", "2cb", "3cba", "4cbaa"],
+                                 ["0", "1c", "2cc"],
+                                 ["0", "1c", "2cd"]
+        ]
+    );
+
 
 
 
 
     class CustomTree {
         constructor(val, children, extra) {
-            this.val = val;
+            this.value = val;
             this.children = children;
             this.extra = extra;
         }
@@ -74,16 +91,16 @@ describe('Tree', () => {
 
     function createCustomTree() {
         return new CustomTree('0', [
-            new CustomTree('00', null, 'EXTRA-00'),
+            new CustomTree('00', undefined, 'EXTRA-00'),
             new CustomTree('01', [
-                new CustomTree('010', null, 'EXTRA-010')
+                new CustomTree('010', undefined, 'EXTRA-010')
             ], 'EXTRA-01')
         ], 'EXTRA-0');
     }
 
     function createMixedTree() {
         return new Tree('T0', [
-            new CustomTree('X00', null, 'EXTRA-00'),
+            new CustomTree('X00', undefined, 'EXTRA-00'),
             new Tree('T01', [
                 new CustomTree('X010', [
                     new Tree('T0100')
@@ -199,36 +216,27 @@ describe('Tree', () => {
         const forEach = require('../for-each');
 
 
-        let iterations = [];
-        forEach(simpleT, (value, pth, tree) => {
-            iterations.push({ value, pth, tree });
+        let values = [];
+        let pths = [];
+        let nodes = [];
+        forEach(simpleT, (value, pth, node) => {
+            values.push(value);
+            pths.push(pth);
+            nodes.push(node);
         });
 
-        it(`iterates through values depth first, starting from the
-            root`, () => {
-            expect(iterations.map(a => a.value)).toEqual([
-                '0', '1a', '2aa', '2ab', '1b', '1c', '2ca', '2cb', '3cba',
-                '4cbaa', '2cc', '2cd'
-            ]);
+        it(_`iterates through values depth first, starting from the
+             root`, () => {
+            expect(values).toEqual(depthFirstSimpleTValues);
         });
 
-        it(_`passes an array of the visited values in visit order as second
-            argument to callback`, () => {
-            expect(iterations.map(a => a.pth)).toEqual([
-                ["0"], ["0", "1a"], ["0", "1a", "2aa"],
-                                    ["0", "1a", "2ab"],
-                        ["0", "1b"],
-                        ["0", "1c"], ["0", "1c", "2ca"],
-                                     ["0", "1c", "2cb"],
-                                         ["0", "1c", "2cb", "3cba"],
-                                            ["0", "1c", "2cb", "3cba", "4cbaa"],
-                                     ["0", "1c", "2cc"],
-                                     ["0", "1c", "2cd"]
-            ]);
+        it(_`passes path (an array of the visited values in visit order) as
+             second argument to callback`, () => {
+            expect(pths).toEqual(depthFirstSimpleTPaths);
         });
 
         it('passes the current node as third argument to callback', () => {
-            expect(iterations.map(a => a.tree)).toEqual(depthFirstSimpleTNodes);
+            expect(nodes).toEqual(depthFirstSimpleTNodes);
         })
     });
 
@@ -237,13 +245,13 @@ describe('Tree', () => {
         const forEachBfs = require('../for-each-bfs');
 
         it(_`returns an array of values returned from tree-traversal function
-            in visit order, which defaults to forEach (depth first)`, () => {
+             in visit order, which defaults to forEach (depth first)`, () => {
             const flattened = flatten(simpleT);
             expect(flattened).toEqual(depthFirstSimpleTValues);
         });
 
         it(_`accepts a tree-traversal method of the form (callback)=>{} as
-            optional second argument`, () => {
+             optional second argument`, () => {
             const forEachBfsMethod = function(...args) {
                 return forEachBfs(this, ...args);
             };
@@ -252,7 +260,7 @@ describe('Tree', () => {
         });
 
         it(_`accepts a tree-traversal function of the form (tree, callback)=>{}
-            if third argument \`isMethod\` set to false`, () => {
+             if third argument \`isMethod\` set to false`, () => {
             const flattened = flatten(simpleT, forEachBfs, false);
             expect(flattened).toEqual(breadthFirstSimpleTValues);
         });
@@ -263,14 +271,14 @@ describe('Tree', () => {
 
         let pths = [];
         let nodes = [];
-        const m = map(simpleT, (val, pth, n) => {
+        const mapped = map(simpleT, (val, pth, n) => {
             pths.push(pth);
             nodes.push(n);
             return val.toUpperCase();
         });
 
         it('creates new nodes using values returned by callback', () => {
-            expect(m).toEqual(
+            expect(mapped).toEqual(
                 new Tree('0', [
                     new Tree('1A', [
                         new Tree('2AA'),
@@ -288,6 +296,38 @@ describe('Tree', () => {
                     ])
                 ])
             );
+        });
+
+        function CountedTree(val, children) {
+            this.value = val;
+            this.children = children;
+            this.childCount = children ? children.length : 0;
+        }
+
+        console.log(createCustomTree());
+        const countedMapped = map(createCustomTree(), (val, pth, node) => {
+            return val.split('').join('-');
+        }, CountedTree);
+
+        it(_`optionally accepts a third argument constructor which will be
+             called with: (callbackResult, children) to create the new
+             nodes`,() => {
+            expect(countedMapped).toEqual(
+                new CountedTree('0', [
+                    new CountedTree('0-0'),
+                    new CountedTree('0-1', [
+                        new CountedTree('0-1-0')
+                    ])
+                ])
+            );
+        });
+
+        it('passes path as second argument to callback', () => {
+            expect(pths).toEqual(depthFirstSimpleTPaths);
+        });
+
+        it('passes node as second argument to callback', () => {
+            expect(nodes).toEqual(depthFirstSimpleTNodes);
         });
 
     });
